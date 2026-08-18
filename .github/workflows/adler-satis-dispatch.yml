@@ -1,0 +1,20 @@
+# Shared by the satis-dispatch stub in every Adler* bundle repo: tells dekkode/sf_adler to rebuild
+# and republish the package repository, so the tag that triggered the caller becomes installable.
+# Lives in dekkode/.github so the dispatch logic has exactly one home.
+name: adler-satis-dispatch
+
+on:
+  workflow_call:
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    # Belt and braces: the stub is only rolled out to Adler* repos, but a copy-paste into an
+    # unrelated repo should not be able to trigger production publishes.
+    if: startsWith(github.event.repository.name, 'Adler')
+    steps:
+      - name: dispatch satis deploy to sf_adler
+        env:
+          GH_TOKEN: ${{ secrets.ADLER_SATIS_DISPATCH_TOKEN }}
+        run: |
+          gh api "repos/${{ github.repository_owner }}/sf_adler/dispatches"             -f event_type=satis-deploy             -f "client_payload[repo]=${{ github.repository }}"             -f "client_payload[tag]=${{ github.ref_name }}"
